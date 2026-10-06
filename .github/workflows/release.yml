@@ -6,6 +6,8 @@ name: release
 on:
   push:
     branches: ["**"]
+    # Stage scripts, manifests and docs do not change the image.
+    paths-ignore: ["stage/**", "k8s/**", "**.md"]
   workflow_dispatch:
 
 permissions: {}
