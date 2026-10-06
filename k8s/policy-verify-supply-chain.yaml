@@ -1,0 +1,67 @@
+# Admit an image only if:
+#   (a) it is cosign-signed by the trusted builder,
+#   (b) it has SLSA provenance signed by the trusted builder,
+#   (c) the provenance says it was built from vuthongkms/demo-app,
+#   (d) the provenance says it was built from refs/heads/main.
+# The builder is shared and public, so (a) and (b) alone are not enough:
+# anyone can call it, from any repository and any branch.
+apiVersion: policies.kyverno.io/v1
+kind: ImageValidatingPolicy
+metadata:
+  name: verify-supply-chain
+spec:
+  validationActions: [Deny]
+  failurePolicy: Fail
+  webhookConfiguration:
+    timeoutSeconds: 30
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: [kube-system, kyverno, local-path-storage]
+  matchImageReferences:
+    - glob: "ghcr.io/vuthongkms/*"
+  validationConfigurations:
+    mutateDigest: true
+    verifyDigest: true
+    required: true
+  attestors:
+    - name: builder
+      cosign:
+        keyless:
+          # Bundle verification accepts exactly one identity. "subject" is an
+          # exact match in ImageValidatingPolicy, hence an anchored regexp.
+          identities:
+            - issuer: https://token.actions.githubusercontent.com
+              subjectRegExp: '^https://github\.com/vuthongkms/trusted-builder/\.github/workflows/build-sign-attest\.yml@refs/tags/v1$'
+        ctlog:
+          url: https://rekor.sigstore.dev
+  attestations:
+    # Check the cosign signature as an attestation of its own predicate type.
+    # verifyImageSignatures would accept ANY bundle from the builder identity,
+    # including the provenance alone.
+    - name: cosignSig
+      intoto:
+        type: https://sigstore.dev/cosign/sign/v1
+    - name: slsa
+      intoto:
+        type: https://slsa.dev/provenance/v1
+  validations:
+    - expression: >-
+        images.containers.map(i, verifyAttestationSignatures(i, attestations.cosignSig, [attestors.builder])).all(e, e > 0)
+      message: "(a) image is not signed by trusted-builder@v1"
+    - expression: >-
+        images.containers.map(i, verifyAttestationSignatures(i, attestations.slsa, [attestors.builder])).all(e, e > 0)
+      message: "(b) no SLSA provenance signed by trusted-builder@v1"
+    - expression: >-
+        images.containers.map(i, extractPayload(i, attestations.slsa).predicate.buildDefinition.externalParameters.workflow.repository == 'https://github.com/vuthongkms/demo-app').all(e, e)
+      message: "(c) provenance: image was not built from vuthongkms/demo-app"
+    - expression: >-
+        images.containers.map(i, extractPayload(i, attestations.slsa).predicate.buildDefinition.externalParameters.workflow.ref == 'refs/heads/main').all(e, e)
+      message: "(d) provenance: image was not built from refs/heads/main"

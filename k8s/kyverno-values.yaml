@@ -1,0 +1,9 @@
+# Kyverno 1.19.1 (chart 3.9.1) for the demo cluster.
+admissionController:
+  container:
+    extraArgs:
+      # The verify cache keeps results for 60m, which hides re-signing during rehearsals.
+      # Must be a quoted string: the chart drops falsy values.
+      imageVerifyCacheEnabled: "false"
+      # 1.19.1 hides bundle lookup errors behind "0 verified"; keep 4+ while rehearsing, 2 on stage.
+      v: "4"

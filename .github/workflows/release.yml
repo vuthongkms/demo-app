@@ -1,0 +1,23 @@
+# Every push, on any branch, is built by the shared trusted builder.
+# Only images built from main may run in the cluster: Kyverno checks the ref
+# recorded in the SLSA provenance, not the signature alone.
+name: release
+
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    uses: vuthongkms/trusted-builder/.github/workflows/build-sign-attest.yml@v1
+    with:
+      image: ghcr.io/vuthongkms/demo-app
+      tag: ${{ github.ref_name == 'main' && 'v1' || github.ref_name }}

@@ -1,0 +1,30 @@
+# ImageValidatingPolicy only looks at images that match matchImageReferences,
+# so an image from any other registry would skip verification entirely.
+# This policy closes that gap: only ghcr.io/vuthongkms/ images may run.
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: allow-only-ghcr-vuthongkms
+spec:
+  validationActions: [Deny]
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods", "pods/ephemeralcontainers"]
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: [kube-system, kyverno, local-path-storage]
+  variables:
+    - name: allContainers
+      expression: >-
+        object.spec.containers
+        + object.spec.?initContainers.orValue([])
+        + object.spec.?ephemeralContainers.orValue([])
+  validations:
+    - expression: "variables.allContainers.all(c, c.image.startsWith('ghcr.io/vuthongkms/'))"
+      message: "only images from ghcr.io/vuthongkms/ are allowed"
