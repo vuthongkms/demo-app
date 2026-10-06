@@ -7,11 +7,15 @@ source "$(dirname "$0")/lib.sh"
 set -e
 
 # Tag v1 is overwritten in scene 1, so only trust it if its provenance says main.
-if [ -z "${GOOD_DIGEST:-}" ]; then
-  GOOD_DIGEST=$(crane digest "$IMAGE:v1")
-  gh attestation verify "oci://$IMAGE@$GOOD_DIGEST" -R "$APP_REPO" \
-    --signer-workflow "$SIGNER_WORKFLOW" --source-ref refs/heads/main > /dev/null \
-    || { echo "v1 is not a main build. Restore it before running prepare."; exit 1; }
+# Otherwise keep the digest recorded earlier (scene 1 was not reset yet).
+CURRENT=$(crane digest "$IMAGE:v1")
+if gh attestation verify "oci://$IMAGE@$CURRENT" -R "$APP_REPO" \
+    --signer-workflow "$SIGNER_WORKFLOW" --source-ref refs/heads/main > /dev/null 2>&1; then
+  GOOD_DIGEST=$CURRENT
+elif [ -n "${GOOD_DIGEST:-}" ]; then
+  echo "WARN: v1 is not a main build; keeping $GOOD_DIGEST. Run reset.sh." >&2
+else
+  echo "v1 is not a main build and no earlier digest is recorded."; exit 1
 fi
 
 # Scenes whose image is missing are recorded empty so the others can still be rehearsed.
