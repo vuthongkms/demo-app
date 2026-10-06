@@ -16,4 +16,13 @@ check "v1 points to the good digest"   "[ \"\$(crane digest $IMAGE:v1)\" = \"\${
 check "attacker image exists"          "crane digest $EVIL_UNSIGNED"
 check "attacker token for scene 1"     "[ -f $STAGE_DIR/.attacker-docker/config.json ]"
 check "no leftover demo-app deploy"    "! k get deploy demo-app"
+
+# Kyverno caches successful verifications (TTL 60m) but starts cold after a
+# restart, and a cold check of a signed image can exceed the 30s webhook limit.
+# Dry-run every scene image twice so the stage runs on a warm cache.
+for img in "$IMAGE@${GOOD_DIGEST:-none}" "$IMAGE:v1-evil" "$IMAGE:v1-borrowed" "$IMAGE:feature-x"; do
+  for _ in 1 2; do k run warmup --image="$img" --restart=Never --dry-run=server > /dev/null 2>&1; done
+done
+s=$(date +%s); k run warmup --image="$IMAGE@${GOOD_DIGEST:-none}" --restart=Never --dry-run=server > /dev/null 2>&1
+check "warm admission under 10s"       "[ $(( $(date +%s) - s )) -lt 10 ]"
 exit $fail

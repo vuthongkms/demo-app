@@ -11,8 +11,7 @@ demo-app (push to any branch)
   └─ release.yml ─ uses ─> vuthongkms/trusted-builder/.github/workflows/build-sign-attest.yml@v1
         build + push      ghcr.io/vuthongkms/demo-app@sha256:...
         cosign sign       Sigstore bundle, keyless
-        cosign attest     SPDX SBOM, OpenVEX (vex/openvex.json)
-        actions/attest    SLSA v1 provenance
+        actions/attest    SLSA v1 provenance (registry), SPDX SBOM and OpenVEX (GitHub attestation store)
         every certificate: SAN = trusted-builder/.../build-sign-attest.yml@refs/tags/v1
 
 kind + Kyverno 1.19 (k8s/)
@@ -50,5 +49,6 @@ stage/reset.sh       # restore tag v1 after scene 1
 ## Notes
 
 - `verifyImageSignatures` in Kyverno and `cosign verify` both accept *any* Sigstore bundle from the given identity, including SLSA provenance alone. The policy therefore checks the cosign signature as its own predicate type, `https://sigstore.dev/cosign/sign/v1`.
-- `trivy --vex oci` does not verify who signed the VEX attestation. Verify it first (`stage/04-vex.sh`).
+- Only the cosign signature and the provenance are pushed to the registry: Kyverno downloads every bundle there on each admission check. The SBOM and VEX live in GitHub's attestation store.
+- Trivy does not verify who wrote a VEX document. `stage/04-vex.sh` verifies it with `gh attestation verify` first, then passes it to Trivy.
 - The attacker side lives in a separate repository (`evil-app`) under a second account. Its images are harmless.

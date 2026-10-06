@@ -2,8 +2,9 @@
 admissionController:
   container:
     extraArgs:
-      # The verify cache keeps results for 60m, which hides re-signing during rehearsals.
-      # Must be a quoted string: the chart drops falsy values.
-      imageVerifyCacheEnabled: "false"
+      # The verify cache is bounded by total payload BYTES (ristretto cost), not
+      # entries. With the default of 1000, an SLSA provenance payload (a few KB)
+      # is silently never cached and is re-verified on every admission.
+      imageVerifyCacheMaxSize: "10000000"
       # 1.19.1 hides bundle lookup errors behind "0 verified"; keep 4+ while rehearsing, 2 on stage.
       v: "4"
