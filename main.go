@@ -15,7 +15,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const banner = "demo-app: legitimate build from main"
+const banner = "demo-app: UNREVIEWED build from feature/x"
 
 func main() {
 	key := []byte(os.Getenv("SIGNING_KEY"))
