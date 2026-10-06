@@ -14,11 +14,13 @@ if [ -z "${GOOD_DIGEST:-}" ]; then
     || { echo "v1 is not a main build. Restore it before running prepare."; exit 1; }
 fi
 
+# Scenes whose image is missing are recorded empty so the others can still be rehearsed.
+digest_or_empty() { crane digest "$IMAGE:$1" 2>/dev/null || echo "WARN: $IMAGE:$1 not found" >&2; }
 cat > "$STAGE_DIR/.digests" <<DIGESTS
 GOOD_DIGEST=$GOOD_DIGEST
-EVIL_DIGEST=$(crane digest "$IMAGE:v1-evil")
-BORROWED_DIGEST=$(crane digest "$IMAGE:v1-borrowed")
-FEATURE_DIGEST=$(crane digest "$IMAGE:feature-x")
+EVIL_DIGEST=$(digest_or_empty v1-evil)
+BORROWED_DIGEST=$(digest_or_empty v1-borrowed)
+FEATURE_DIGEST=$(digest_or_empty feature-x)
 DIGESTS
 cat "$STAGE_DIR/.digests"
 
