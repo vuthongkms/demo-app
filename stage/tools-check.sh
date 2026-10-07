@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Print the version of every tool the demo needs.
-for t in kind kubectl helm cosign crane syft trivy vexctl jq go govulncheck gh; do
+for t in kind kubectl helm cosign crane syft trivy vexctl jq go govulncheck gh asciinema; do
   printf '%-12s ' "$t"
   case $t in
     kubectl) kubectl version --client 2>/dev/null | head -1 ;;

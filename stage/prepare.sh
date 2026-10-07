@@ -28,6 +28,15 @@ FEATURE_DIGEST=$(digest_or_empty feature-x)
 DIGESTS
 cat "$STAGE_DIR/.digests"
 
+# Links to open in browser tabs before going on stage.
+{
+  echo "Rekor, legitimate signature: $(rekor_url "$IMAGE@$GOOD_DIGEST" || true)"
+  if crane digest "$IMAGE:v1-evil" > /dev/null 2>&1; then
+    echo "Rekor, attacker signature:   $(rekor_url "$IMAGE:v1-evil" || true)"
+  fi
+  echo "GitHub Actions run:          $(gh run list -R "$APP_REPO" --branch main --workflow release --limit 1 --json url --jq '.[0].url' || true)"
+} | tee "$STAGE_DIR/.tmp/links.txt"
+
 if [ -n "${STOLEN_PAT:-}" ]; then
   echo "$STOLEN_PAT" | DOCKER_CONFIG="$STAGE_DIR/.attacker-docker" \
     crane auth login ghcr.io -u "$ATTACKER" --password-stdin

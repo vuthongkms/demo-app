@@ -50,6 +50,11 @@ for wf in act1-unsigned.yml act2-self-signed.yml act2b-borrow-builder.yml; do
 done
 
 gh auth switch --hostname github.com --user "$OWNER"
+# Scene 1 copies this image with the victim token; the cluster and preflight pull it anonymously.
+if ! DOCKER_CONFIG=$(mktemp -d) crane digest "ghcr.io/${ATTACKER,,}/evil-app:act1" > /dev/null 2>&1; then
+  echo "ghcr.io/${ATTACKER,,}/evil-app is not public: open its package settings on GitHub and change visibility to public, then re-run."
+  exit 1
+fi
 mkdir -p "$STAGE_DIR/.tmp" && echo "$ATTACKER" > "$STAGE_DIR/.tmp/attacker"
 ATTACKER="$ATTACKER" STOLEN_PAT="$STOLEN_PAT" "$STAGE_DIR/prepare.sh"
 echo "done: run stage/preflight.sh, then stage/negative-controls.sh"

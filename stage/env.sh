@@ -10,4 +10,4 @@ export SIGNER_WORKFLOW=vuthongkms/trusted-builder/.github/workflows/build-sign-a
 # Second GitHub account that plays the attacker; setup-attacker.sh records it in stage/.tmp/attacker.
 [ -z "${ATTACKER:-}" ] && [ -f "$(dirname "${BASH_SOURCE[0]}")/.tmp/attacker" ] && ATTACKER=$(cat "$(dirname "${BASH_SOURCE[0]}")/.tmp/attacker")
 export ATTACKER="${ATTACKER:-CHANGE-ME}"
-export EVIL_UNSIGNED="ghcr.io/${ATTACKER}/evil-app:act1"
+export EVIL_UNSIGNED="ghcr.io/${ATTACKER,,}/evil-app:act1"

@@ -11,6 +11,8 @@ check "policy allow-only-ghcr"         "k get validatingpolicy allow-only-ghcr-v
 check "ghcr.io reachable"              "curl -s -o /dev/null -m 5 https://ghcr.io/v2/"
 check "rekor reachable"                "curl -sf -o /dev/null -m 5 https://rekor.sigstore.dev/api/v1/log"
 check "sigstore TUF reachable"         "curl -sf -o /dev/null -m 5 https://tuf-repo-cdn.sigstore.dev/timestamp.json"
+check "Go vuln DB reachable"           "curl -sf -o /dev/null -m 5 https://vuln.go.dev/index/db.json"
+check "Trivy DB cached (scene 4 never downloads it)" "[ -s \"$HOME/.cache/trivy/db/trivy.db\" ]"
 check "digests recorded"               "[ -n \"\${GOOD_DIGEST:-}\" ]"
 check "v1 points to the good digest"   "[ \"\$(crane digest $IMAGE:v1)\" = \"\${GOOD_DIGEST:-}\" ]"
 check "attacker image exists"          "crane digest $EVIL_UNSIGNED"
