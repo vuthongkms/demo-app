@@ -1,3 +1,4 @@
+# shellcheck shell=bash disable=SC2034
 # Helpers for the live demo. Each command is printed, then runs on Enter.
 # AUTO=1 runs without pausing (rehearsals, recordings).
 set -uo pipefail
@@ -11,7 +12,7 @@ say() { printf '\n\033[1;36m# %s\033[0m\n' "$*"; }
 run() {
   printf '\033[1;33m$ %s\033[0m' "$*"
   if [ "${AUTO:-0}" = 1 ]; then echo; else read -r _; fi
-  eval "$@"
+  eval "$*"
 }
 k() { kubectl --context "$KUBECONTEXT" "$@"; }
 

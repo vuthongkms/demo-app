@@ -8,5 +8,8 @@ admissionController:
       # 1 MB holds hundreds of payloads; NumCounters is 10x this value, so keep it modest.
       # https://github.com/kyverno/kyverno/issues/17575
       imageVerifyCacheMaxSize: "1000000"
+      # Default TTL is 60m. The demo runs ~40 minutes into the talk, so a cache
+      # warmed by preflight.sh before the talk would already be cold.
+      imageVerifyCacheTTLDuration: "4h"
       # 1.19.1 hides bundle lookup errors behind "0 verified"; keep 4+ while rehearsing, 2 on stage.
       v: "4"
