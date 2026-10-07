@@ -3,8 +3,10 @@ admissionController:
   container:
     extraArgs:
       # The verify cache is bounded by total payload BYTES (ristretto cost), not
-      # entries. With the default of 1000, an SLSA provenance payload (a few KB)
+      # entries. With the default of 1000, a GitHub SLSA provenance payload (~1 KB)
       # is silently never cached and is re-verified on every admission.
-      imageVerifyCacheMaxSize: "10000000"
+      # 1 MB holds hundreds of payloads; NumCounters is 10x this value, so keep it modest.
+      # https://github.com/kyverno/kyverno/issues/17575
+      imageVerifyCacheMaxSize: "1000000"
       # 1.19.1 hides bundle lookup errors behind "0 verified"; keep 4+ while rehearsing, 2 on stage.
       v: "4"
