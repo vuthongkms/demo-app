@@ -28,6 +28,12 @@ FEATURE_DIGEST=$(digest_or_empty feature-x)
 DIGESTS
 cat "$STAGE_DIR/.digests"
 
+# Scene 1 pushes this unsigned image over v1 with the stolen token.
+if [ ! -s "$EVIL_TARBALL" ]; then
+  docker build -q --build-arg ACT=1-unsigned -t local/evil-app:act1 "$STAGE_DIR/attacker" > /dev/null
+  docker save local/evil-app:act1 -o "$EVIL_TARBALL"
+fi
+
 # Links to open in browser tabs before going on stage.
 {
   echo "Rekor, legitimate signature: $(rekor_url "$IMAGE@$GOOD_DIGEST" || true)"

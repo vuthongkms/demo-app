@@ -15,7 +15,7 @@ check "Go vuln DB reachable"           "curl -sf -o /dev/null -m 5 https://vuln.
 check "Trivy DB cached (scene 4 never downloads it)" "[ -s \"$HOME/.cache/trivy/db/trivy.db\" ]"
 check "digests recorded"               "[ -n \"\${GOOD_DIGEST:-}\" ]"
 check "v1 points to the good digest"   "[ \"\$(crane digest $IMAGE:v1)\" = \"\${GOOD_DIGEST:-}\" ]"
-check "attacker image exists"          "crane digest $EVIL_UNSIGNED"
+check "scene 1 image tarball"          "[ -s $EVIL_TARBALL ]"
 check "attacker token for scene 1"     "[ -f $STAGE_DIR/.attacker-docker/config.json ]"
 check "no leftover demo-app deploy"    "! k get deploy demo-app"
 

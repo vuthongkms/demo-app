@@ -51,4 +51,4 @@ stage/reset.sh       # restore tag v1 after scene 1
 - `verifyImageSignatures` in Kyverno and `cosign verify` both accept *any* Sigstore bundle from the given identity, including SLSA provenance alone. The policy therefore checks the cosign signature as its own predicate type, `https://sigstore.dev/cosign/sign/v1`.
 - Only the cosign signature and the provenance are pushed to the registry: Kyverno downloads every bundle there on each admission check. The SBOM and VEX live in GitHub's attestation store.
 - Trivy does not verify who wrote a VEX document. `stage/04-vex.sh` verifies it with `gh attestation verify` first, then passes it to Trivy.
-- The attacker side lives in a separate repository (`evil-app`) under a second account. Its images are harmless.
+- The attacker side is in `stage/attacker/` (harmless images that only print a banner). Scenes 2 and 2b were produced by running its workflows from a second GitHub account, which GitHub suspended shortly afterwards; their images and signatures remain in this registry and in Rekor. Scene 1 needs no second account: it pushes a locally built image over `v1` with the "stolen" token.

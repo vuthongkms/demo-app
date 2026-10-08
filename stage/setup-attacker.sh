@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# One-time setup of the attacker side (scenes 1, 2 and 2b).
+# One-time setup of the attacker side (scenes 2 and 2b; scene 1 needs no account).
+#
+# Warning: GitHub suspended our attacker account right after this ran (2026-10-08),
+# most likely because a brand-new account used another user's token. The images and
+# signatures it produced stay in ghcr.io/vuthongkms/demo-app and in Rekor.
 #
 # Before running:
 #   1. gh is logged in to github.com with BOTH accounts:
@@ -11,12 +15,14 @@
 # Usage: ATTACKER=<attacker login> stage/setup-attacker.sh
 set -euo pipefail
 STAGE_DIR="$(cd "$(dirname "$0")" && pwd)"
-EVIL_DIR="$(cd "$STAGE_DIR/../.." && pwd)/evil-app"
+# The attacker repository is created from a throwaway copy of stage/attacker.
+EVIL_DIR="$(mktemp -d)"
+cp -r "$STAGE_DIR/attacker/." "$EVIL_DIR/"
+git -C "$EVIL_DIR" init -q -b main
 export GH_HOST=github.com
 OWNER=vuthongkms
 : "${ATTACKER:?set ATTACKER to the attacker GitHub login}"
 : "${STOLEN_PAT:?export STOLEN_PAT first (read -rs STOLEN_PAT)}"
-[ -d "$EVIL_DIR/.git" ] || { echo "missing $EVIL_DIR"; exit 1; }
 
 gh auth status --hostname github.com 2>&1 | grep -q "account $ATTACKER " \
   || { echo "gh is not logged in as $ATTACKER on github.com"; exit 1; }

