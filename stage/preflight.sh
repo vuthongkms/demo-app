@@ -16,6 +16,9 @@ check "Trivy DB cached (scene 4 never downloads it)" "[ -s \"$HOME/.cache/trivy/
 check "digests recorded"               "[ -n \"\${GOOD_DIGEST:-}\" ]"
 check "v1 points to the good digest"   "[ \"\$(crane digest $IMAGE:v1)\" = \"\${GOOD_DIGEST:-}\" ]"
 check "scene 1 image tarball"          "[ -s $EVIL_TARBALL ]"
+# Scenes 2 and 2b cannot be rebuilt (the attacker account is suspended); see ../backup/restore.sh.
+check "scene 2 image and bundles"      "[ \"\$(crane digest $IMAGE:v1-evil)\" = \"${EVIL_DIGEST:-}\" ] && crane manifest $IMAGE:sha256-${EVIL_DIGEST#sha256:}"
+check "scene 2b image and bundles"     "[ \"\$(crane digest $IMAGE:v1-borrowed)\" = \"${BORROWED_DIGEST:-}\" ] && crane manifest $IMAGE:sha256-${BORROWED_DIGEST#sha256:}"
 check "attacker token for scene 1"     "[ -f $STAGE_DIR/.attacker-docker/config.json ]"
 check "no leftover demo-app deploy"    "! k get deploy demo-app"
 
